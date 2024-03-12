@@ -7,10 +7,10 @@
 
 #include <vector>
 #include <string>
+#include "Config.h"
 
 class Cli {
 public:
-    Cli();
 
     void set_args(int argc, char *argv[]);
 
@@ -33,7 +33,20 @@ private:
 
     int run_interactive();
 
+    int run_create();
+
+    int run_delete();
+
+    int run_list();
+
+    int run_auth();
+
+    int run_help();
+
+
     void print_help();
+
+    Config config;
 };
 
 

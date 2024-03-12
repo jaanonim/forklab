@@ -9,26 +9,35 @@
 
 using namespace fmt;
 
-Cli::Cli() {}
-
 int Cli::run() {
-    print("Hello, world!\n");
-
+    int status;
+    status = config.setup();
+    if (status) return status;
 
     if (args.size() == 1) {
         return run_interactive();
     }
 
     auto action = match_first_arg();
-    if (action == Cli::ArgAction::INVALID) {
-        print(fg(fmt::color::red) | fmt::emphasis::bold, "Invalid argument: ");
-        print(fmt::emphasis::italic, args[1]);
-        print(fmt::emphasis::bold, "\nHere is help for you:\n");
-        print_help();
-        return 100;
-    }
 
-    return 0;
+    switch (action) {
+        case CREATE:
+            return run_create();
+        case DELETE:
+            return run_delete();
+        case LIST:
+            return run_list();
+        case AUTH:
+            return run_auth();
+        case HELP:
+            return run_help();
+        case INVALID:
+            print(fg(fmt::color::red) | fmt::emphasis::bold, "Invalid argument: ");
+            print(fmt::emphasis::italic, args[1]);
+            print(fmt::emphasis::bold, "\nHere is help for you:\n");
+            print_help();
+            return 100;
+    }
 }
 
 Cli::ArgAction Cli::match_first_arg() {
@@ -53,7 +62,7 @@ void Cli::set_args(int argc, char **argv) {
 }
 
 int Cli::run_interactive() {
-    
+
     return 0;
 }
 
@@ -78,4 +87,32 @@ void Cli::print_help() {
     print("\td,\tdelete\t\tdelete group of given index\n");
     print("\th,\thelp\t\tshows this help\n");
     print("\tl,\tlist\t\tlists groups\n");
+}
+
+int Cli::run_create() {
+    return 0;
+}
+
+int Cli::run_delete() {
+    return 0;
+}
+
+int Cli::run_list() {
+    return 0;
+}
+
+int Cli::run_auth() {
+    if (args.size() != 3) {
+        print(fg(fmt::color::red) | fmt::emphasis::bold, "Expected to get only token after `auth`.");
+        return 101;
+    }
+
+    config.setAuthToken(args[2]);
+
+    return 0;
+}
+
+int Cli::run_help() {
+    print_help();
+    return 0;
 }
