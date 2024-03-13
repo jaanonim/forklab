@@ -11,15 +11,17 @@
 
 class Config {
 public:
-    int setup();
+    Config();
 
     std::optional<std::string> getAuthToken();
 
     void setAuthToken(const std::string &);
 
-    void add_group(const Group &g);
+    bool add_group(const Group &g);
 
     bool del_group(int);
+
+    bool del_group(const std::string &);
 
     std::vector<Group> get_groups();
 
@@ -30,9 +32,12 @@ private:
 
     std::string path;
     std::string file_name = "forklab.json";
-    nlohmann::json data;
 
     void save();
+
+    nlohmann::json to_json();
+
+    void from_json(nlohmann::json);
 };
 
 

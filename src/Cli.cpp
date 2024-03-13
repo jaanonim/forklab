@@ -6,13 +6,42 @@
 #include "fmt/core.h"
 #include "fmt/color.h"
 #include "Cli.h"
+#include "Exceptions.h"
 
 using namespace fmt;
 
 int Cli::run() {
-    int status;
-    status = config.setup();
-    if (status) return status;
+    try {
+        _run();
+    }
+    catch (InvalidArgs &e) {
+        print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
+        print(stderr, fg(fmt::color::red), "\n" + e.message);
+        if (e.print_help) {
+            print(fmt::emphasis::bold, "\nHere is help for you:\n");
+            print_help();
+            print("\n");
+        }
+        return e.code;
+    }
+    catch (MessageException &e) {
+        print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
+        print(stderr, fg(fmt::color::red), "\n" + e.message);
+        return e.code;
+    }
+    catch (CodeException &e) {
+        print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
+        return e.code;
+    }
+    catch (std::exception e) {
+        print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
+        return 255;
+    }
+    return 0;
+}
+
+void Cli::_run() {
+    config = new Config();
 
     if (args.size() == 1) {
         return run_interactive();
@@ -32,12 +61,9 @@ int Cli::run() {
         case HELP:
             return run_help();
         case INVALID:
-            print(fg(fmt::color::red) | fmt::emphasis::bold, "Invalid argument: ");
-            print(fmt::emphasis::italic, args[1]);
-            print(fmt::emphasis::bold, "\nHere is help for you:\n");
-            print_help();
-            return 100;
+            throw InvalidArgs("Invalid argument: " + args[1], true);
     }
+
 }
 
 Cli::ArgAction Cli::match_first_arg() {
@@ -61,9 +87,8 @@ void Cli::set_args(int argc, char **argv) {
     }
 }
 
-int Cli::run_interactive() {
+void Cli::run_interactive() {
 
-    return 0;
 }
 
 void Cli::print_help() {
@@ -89,30 +114,62 @@ void Cli::print_help() {
     print("\tl,\tlist\t\tlists groups\n");
 }
 
-int Cli::run_create() {
-    return 0;
-}
-
-int Cli::run_delete() {
-    return 0;
-}
-
-int Cli::run_list() {
-    return 0;
-}
-
-int Cli::run_auth() {
-    if (args.size() != 3) {
-        print(fg(fmt::color::red) | fmt::emphasis::bold, "Expected to get only token after `auth`.");
-        return 101;
+void Cli::run_create() {
+    switch (args.size()) {
+        case 2:
+            run_create_interactive();
+            break;
+        case 6:
+            if (config->add_group(Group(args[2], args[3], args[4], args[5]))) {
+                print("Group named {} created.", args[2]);
+            } else {
+                throw GroupError("Cannot create group named: " + args[2] + "\nProbably group already exist.");
+            }
+            break;
+        case 7:
+            if (config->add_group(Group(args[2], args[3], args[4], args[5], args[6]))) {
+                print("Group named {} created.", args[2]);
+            } else {
+                throw GroupError("Cannot create group named: " + args[2] + "\nProbably group already exist.");
+            }
+            break;
+        default:
+            throw InvalidArgs("Command create expects 0, 4 or 7 arguments.");
     }
-
-    config.setAuthToken(args[2]);
-
-    return 0;
 }
 
-int Cli::run_help() {
+void Cli::run_create_interactive() {
+
+}
+
+void Cli::run_delete() {
+    if (args.size() != 3) {
+        throw InvalidArgs("Expected to get only name of group after `create`.");
+    }
+    if (config->del_group(args[2])) {
+        print("Group named {} deleted.", args[2]);
+    } else {
+        throw GroupError("Cannot delete group named: " + args[2] + "\nProbably group doesn't exist.");
+    }
+}
+
+void Cli::run_list() {
+    
+}
+
+void Cli::run_auth() {
+    if (args.size() != 3) {
+        throw InvalidArgs("Expected to get only token after `auth`.");
+    }
+    config->setAuthToken(args[2]);
+    print("Auth token saved.");
+}
+
+void Cli::run_help() {
     print_help();
-    return 0;
+}
+
+Cli::~Cli() {
+    delete config;
+    config = nullptr;
 }

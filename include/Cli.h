@@ -12,6 +12,8 @@
 class Cli {
 public:
 
+    ~Cli();
+
     void set_args(int argc, char *argv[]);
 
     int run();
@@ -19,6 +21,7 @@ public:
 private:
     std::vector<std::string> args;
 
+    void _run();
 
     enum ArgAction {
         INVALID = 0,
@@ -31,22 +34,24 @@ private:
 
     ArgAction match_first_arg();
 
-    int run_interactive();
+    void run_interactive();
 
-    int run_create();
+    void run_create();
 
-    int run_delete();
+    void run_delete();
 
-    int run_list();
+    void run_list();
 
-    int run_auth();
+    void run_auth();
 
-    int run_help();
+    void run_help();
 
 
     void print_help();
 
-    Config config;
+    Config *config;
+
+    void run_create_interactive();
 };
 
 

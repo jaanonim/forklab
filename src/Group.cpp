@@ -5,6 +5,7 @@
 #include "Group.h"
 
 Group::Group(nlohmann::json data) {
+    name = data["name"];
     in_group = data["in_group"];
     out_group = data["out_group"];
     path = data["path"];
@@ -13,7 +14,9 @@ Group::Group(nlohmann::json data) {
     }
 }
 
-Group::Group(std::string in_group, std::string out_group, std::string path, std::optional<std::string> command) {
+Group::Group(std::string name, std::string in_group, std::string out_group, std::string path,
+             std::optional<std::string> command) {
+    this->name = name;
     this->in_group = in_group;
     this->out_group = out_group;
     this->path = path;
@@ -22,6 +25,7 @@ Group::Group(std::string in_group, std::string out_group, std::string path, std:
 
 nlohmann::json Group::to_json() {
     nlohmann::json data;
+    data["name"] = name;
     data["in_group"] = in_group;
     data["out_group"] = out_group;
     data["path"] = path;

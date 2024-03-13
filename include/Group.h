@@ -13,11 +13,13 @@ class Group {
 public:
     Group(nlohmann::json data);
 
-    Group(std::string in_group,
+    Group(std::string name,
+          std::string in_group,
           std::string out_group,
           std::string path,
-          std::optional<std::string> command);
+          std::optional<std::string> command = {});
 
+    std::string name;
     std::string in_group;
     std::string out_group;
     std::string path;
