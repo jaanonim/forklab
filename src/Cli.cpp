@@ -7,6 +7,8 @@
 #include "fmt/color.h"
 #include "Cli.h"
 #include "Exceptions.h"
+#include <iostream>
+
 
 using namespace fmt;
 
@@ -33,7 +35,7 @@ int Cli::run() {
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
         return e.code;
     }
-    catch (std::exception e) {
+    catch (std::exception &e) {
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
         return 255;
     }
@@ -154,7 +156,10 @@ void Cli::run_delete() {
 }
 
 void Cli::run_list() {
-    
+    print(fmt::emphasis::bold,"{:<16} {:<20} {:<20} {:<30} {:<30}\n", "Name","In","Out","Path","Command");
+    for (const auto& group : config->get_groups()) {
+        print("{:<16} {:<20} {:<20} {:<30} {:<30}\n", group.name, group.in_group,group.out_group,group.path,group.command.value_or(""));
+    }
 }
 
 void Cli::run_auth() {
