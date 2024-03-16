@@ -8,7 +8,7 @@
 #include "Cli.h"
 #include "Exceptions.h"
 #include <iostream>
-
+#include "inquirer.h"
 
 using namespace fmt;
 
@@ -141,7 +141,22 @@ void Cli::run_create() {
 }
 
 void Cli::run_create_interactive() {
+    auto inquirer = alx::Inquirer("Create group.");
+    inquirer.add_question({ "name", "How to call this group?" ,".+"});
+    inquirer.add_question({ "in_group", "From witch group fork projects (eg group/subgroup)?" ,".+"});
+    inquirer.add_question({ "out_group", "To witch group fork to (eq. group/subgroup)?" ,".+"});
+    inquirer.add_question({ "path", "Where to clone those project (absolute path)?" ,"^(/[^/ ]*)+/?$"});
+    inquirer.add_question({ "command", "Execute any command after cloning?:" });
+    inquirer.ask();
+    auto command = inquirer.answer("command");
 
+    config->add_group(Group(
+            inquirer.answer("name"),
+            inquirer.answer("in_group"),
+            inquirer.answer("out_group"),
+            inquirer.answer("path"),
+            command.empty() ? std::nullopt : std::make_optional(command)
+            ));
 }
 
 void Cli::run_delete() {
