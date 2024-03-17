@@ -26,7 +26,7 @@ private:
     enum ArgAction {
         INVALID = 0,
         CREATE = 1,
-        DELETE = 2,
+        REMOVE = 2,
         LIST = 3,
         AUTH = 4,
         HELP = 5,

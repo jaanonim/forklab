@@ -15,6 +15,7 @@
 struct ProjectData {
     std::string name;
     std::string id;
+    std::string clone_url;
 };
 
 
@@ -24,14 +25,21 @@ public:
 
     ~Gitlab();
 
-    std::vector<ProjectData> getGroupProjects(std::string);
+    std::vector<ProjectData> getGroupProjects(const std::string &);
+
+    void createFork(const std::string &, const std::string &);
 
 protected:
-    nlohmann::json get(std::string url);
+    nlohmann::json get(const std::string &url);
+
+    nlohmann::json post(const std::string &url);
+
+    void check_errors(httplib::Result &);
 
 private:
     const std::string auth_token;
     httplib::Client *http_client;
+
 };
 
 

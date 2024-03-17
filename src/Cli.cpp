@@ -10,8 +10,10 @@
 #include <iostream>
 #include "inquirer.h"
 #include "Gitlab.h"
+#include "spinners.hpp"
 
 using namespace fmt;
+using namespace spinners;
 
 int Cli::run() {
     try {
@@ -25,6 +27,10 @@ int Cli::run() {
             print_help();
             print("\n");
         }
+        return e.code;
+    } catch (HTTPError &e) {
+        print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, "{} {}", e.response_code, e.what());
+        print(stderr, fg(fmt::color::red), "\n" + e.message);
         return e.code;
     }
     catch (MessageException &e) {
@@ -55,7 +61,7 @@ void Cli::_run() {
     switch (action) {
         case CREATE:
             return run_create();
-        case DELETE:
+        case REMOVE:
             return run_delete();
         case LIST:
             return run_list();
@@ -73,7 +79,7 @@ Cli::ArgAction Cli::match_first_arg() {
     if (args[1] == "c" || args[1] == "create") {
         return Cli::ArgAction::CREATE;
     } else if (args[1] == "d" || args[1] == "delete") {
-        return Cli::ArgAction::DELETE;
+        return Cli::ArgAction::REMOVE;
     } else if (args[1] == "l" || args[1] == "list") {
         return Cli::ArgAction::LIST;
     } else if (args[1] == "h" || args[1] == "help") {
@@ -91,14 +97,66 @@ void Cli::set_args(int argc, char **argv) {
 }
 
 void Cli::run_interactive() {
-    auto inquirer = alx::Inquirer("");
+    auto *inquirer = new alx::Inquirer("");
     std::vector<std::string> v;
     for (const auto &group: config->get_groups()) v.push_back(group.name);
-    inquirer.add_question({"name", "Select group", v});
-    inquirer.ask();
+    inquirer->add_question({"name", "Select group", v});
+    inquirer->ask();
 
     auto group = std::find_if(config->get_groups().begin(), config->get_groups().end(),
-                              [&](const Group &ele) { return ele.name == inquirer.answer("name"); }).base();
+                              [&](const Group &ele) { return ele.name == inquirer->answer("name"); }).base();
+    Gitlab gitlab(config->getAuthToken().value_or(""));
+
+    Spinner *spinner = new Spinner();
+    spinner->setText("Loading ...");
+    spinner->setInterval(100);
+    spinner->setSymbols("dots");
+
+    spinner->start();
+    auto in_data = gitlab.getGroupProjects(group->in_group);
+    spinner->stop();
+    delete spinner;
+    spinner = nullptr;
+
+    delete inquirer;
+    inquirer = new alx::Inquirer("");
+    v.clear();
+    for (const auto &ele: in_data) v.push_back(ele.name);
+    inquirer->add_question({"name", "Select project to fork", v});
+    inquirer->ask();
+    std::string name = inquirer->answer("name");
+    delete inquirer;
+    inquirer = nullptr;
+    const ProjectData *p_data = std::find_if(in_data.begin(), in_data.end(),
+                                             [&](auto ele) { return ele.name == name; }).base();
+
+    spinner = new Spinner();
+    spinner->setText("Forking ...");
+    spinner->setInterval(100);
+    spinner->setSymbols("dots");
+
+    spinner->start();
+    try {
+        gitlab.createFork(p_data->id, group->out_group);
+    }
+    catch (HTTPError &e) {
+        if (e.response_code == 409) {
+            throw GenericError("Fork of this repo already exists in this group.");
+        } else {
+            throw;
+        }
+    }
+    auto out_data = gitlab.getGroupProjects(group->out_group);
+    spinner->stop();
+    delete spinner;
+    spinner = nullptr;
+
+    p_data = std::find_if(out_data.begin(), out_data.end(),
+                          [&](auto ele) { return ele.name == name; }).base();
+
+    if (p_data == nullptr) throw GenericError("Failed to fork repo.");
+    print("{}", p_data->clone_url);
+
 }
 
 void Cli::print_help() {

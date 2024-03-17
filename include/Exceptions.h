@@ -91,5 +91,28 @@ public:
         return "Unauthorized.";
     }
 
-    const int code = 150;
+    const int code = 151;
+};
+
+class EmptyResponse : public MessageException {
+public:
+    explicit EmptyResponse() : MessageException(
+            "Response has empty body.") {}
+
+    char *what() override {
+        return "Empty response.";
+    }
+
+    const int code = 152;
+};
+
+class GenericError : public MessageException {
+public:
+    explicit GenericError(const std::string &m) : MessageException(m) {}
+
+    char *what() override {
+        return "Error.";
+    }
+
+    const int code = 200;
 };
