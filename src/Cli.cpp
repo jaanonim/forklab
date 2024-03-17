@@ -97,6 +97,10 @@ void Cli::set_args(int argc, char **argv) {
 }
 
 void Cli::run_interactive() {
+    if (config->get_groups().empty()) {
+        throw GenericError("Create group before running this command.\nTo create it run:\n\tforklab c");
+    }
+
     auto *inquirer = new alx::Inquirer("");
     std::vector<std::string> v;
     for (const auto &group: config->get_groups()) v.push_back(group.name);
@@ -227,7 +231,7 @@ void Cli::run_create_interactive() {
 
 void Cli::run_delete() {
     if (args.size() != 3) {
-        throw InvalidArgs("Expected to get only name of group after `create`.");
+        throw InvalidArgs("Expected to get only name of group after `delete`.");
     }
     if (config->del_group(args[2])) {
         print("Group named {} deleted.", args[2]);
