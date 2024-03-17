@@ -9,6 +9,7 @@
 #include "Exceptions.h"
 #include <iostream>
 #include "inquirer.h"
+#include "Gitlab.h"
 
 using namespace fmt;
 
@@ -90,7 +91,14 @@ void Cli::set_args(int argc, char **argv) {
 }
 
 void Cli::run_interactive() {
+    auto inquirer = alx::Inquirer("");
+    std::vector<std::string> v;
+    for (const auto &group: config->get_groups()) v.push_back(group.name);
+    inquirer.add_question({"name", "Select group", v});
+    inquirer.ask();
 
+    auto group = std::find_if(config->get_groups().begin(), config->get_groups().end(),
+                              [&](const Group &ele) { return ele.name == inquirer.answer("name"); }).base();
 }
 
 void Cli::print_help() {
@@ -142,11 +150,11 @@ void Cli::run_create() {
 
 void Cli::run_create_interactive() {
     auto inquirer = alx::Inquirer("Create group.");
-    inquirer.add_question({ "name", "How to call this group?" ,".+"});
-    inquirer.add_question({ "in_group", "From witch group fork projects (eg group/subgroup)?" ,".+"});
-    inquirer.add_question({ "out_group", "To witch group fork to (eq. group/subgroup)?" ,".+"});
-    inquirer.add_question({ "path", "Where to clone those project (absolute path)?" ,"^(/[^/ ]*)+/?$"});
-    inquirer.add_question({ "command", "Execute any command after cloning?:" });
+    inquirer.add_question({"name", "How to call this group?", ".+"});
+    inquirer.add_question({"in_group", "Group ID from witch group fork projects (eg. 1234567)?", ".+"});
+    inquirer.add_question({"out_group", "Group ID to witch group fork to (eq. 1234567)?", ".+"});
+    inquirer.add_question({"path", "Where to clone those project (absolute path)?", "^(/[^/ ]*)+/?$"});
+    inquirer.add_question({"command", "Execute any command after cloning?:"});
     inquirer.ask();
     auto command = inquirer.answer("command");
 
@@ -156,7 +164,7 @@ void Cli::run_create_interactive() {
             inquirer.answer("out_group"),
             inquirer.answer("path"),
             command.empty() ? std::nullopt : std::make_optional(command)
-            ));
+    ));
 }
 
 void Cli::run_delete() {
@@ -171,9 +179,10 @@ void Cli::run_delete() {
 }
 
 void Cli::run_list() {
-    print(fmt::emphasis::bold,"{:<16} {:<20} {:<20} {:<30} {:<30}\n", "Name","In","Out","Path","Command");
-    for (const auto& group : config->get_groups()) {
-        print("{:<16} {:<20} {:<20} {:<30} {:<30}\n", group.name, group.in_group,group.out_group,group.path,group.command.value_or(""));
+    print(fmt::emphasis::bold, "{:<16} {:<20} {:<20} {:<30} {:<30}\n", "Name", "In", "Out", "Path", "Command");
+    for (const auto &group: config->get_groups()) {
+        print("{:<16} {:<20} {:<20} {:<30} {:<30}\n", group.name, group.in_group, group.out_group, group.path,
+              group.command.value_or(""));
     }
 }
 

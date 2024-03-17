@@ -68,3 +68,28 @@ public:
 
     const int code = 101;
 };
+
+class HTTPError : public MessageException {
+public:
+    explicit HTTPError(const std::string &m, const int response_code) : MessageException(m),
+                                                                        response_code(response_code) {}
+
+    char *what() override {
+        return "HTTP Error.";
+    }
+
+    const int response_code;
+    const int code = 150;
+};
+
+class Unauthorized : public MessageException {
+public:
+    explicit Unauthorized() : MessageException(
+            "Cannot get access to gitlab API.\nMake sure that you have configure correct gitlab access token using command:\n\tforklab auth TOKEN") {}
+
+    char *what() override {
+        return "Unauthorized.";
+    }
+
+    const int code = 150;
+};
