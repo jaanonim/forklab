@@ -24,4 +24,4 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          path: /build/forklab
+          path: ${{github.workspace}}/build/forklab
