@@ -16,13 +16,13 @@ public:
     Group(std::string name,
           std::string in_group,
           std::string out_group,
-          std::string path,
+          std::string folder_path,
           std::optional<std::string> command = {});
 
     std::string name;
     std::string in_group;
     std::string out_group;
-    std::string path;
+    std::string folder_path;
     std::optional<std::string> command;
 
     nlohmann::json to_json();

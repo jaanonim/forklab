@@ -1,5 +1,5 @@
-#ifndef _SPINNERS_HPP_
-#define _SPINNERS_HPP_
+#ifndef SPINNERS_HPP
+#define SPINNERS_HPP
 
 #include <iostream>
 #include <sstream>
@@ -126,4 +126,4 @@ namespace spinners {
     };
 }
 
-#endif // _SPINNERS_HPP_
+#endif // SPINNERS_HPP

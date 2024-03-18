@@ -25,6 +25,8 @@ public:
 
     std::vector<Group> get_groups();
 
+    Group get_group(const std::string &);
+
 
 private:
     std::optional<std::string> auth_token;

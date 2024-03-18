@@ -10,10 +10,8 @@
 #include <vector>
 #include <json.hpp>
 #include "Exceptions.h"
-#include "fmt/core.h"
 #include "httplib.h"
 
-using namespace fmt;
 using json = nlohmann::json;
 
 Gitlab::Gitlab(std::string auth_token) : auth_token(std::move(auth_token)) {
@@ -30,7 +28,7 @@ std::vector<ProjectData> Gitlab::getGroupProjects(const std::string &group_id) {
     json data = get("/api/v4/groups/" + group_id + "/projects");
     std::vector<ProjectData> res;
     for (auto ele: data) {
-        res.push_back({ele["name"], to_string(ele["id"]), ele["ssh_url_to_repo"]});
+        res.push_back({ele["name"], to_string(ele["id"]), ele["ssh_url_to_repo"], ele["path"]});
     }
     return res;
 }

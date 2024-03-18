@@ -118,3 +118,11 @@ void Config::from_json(nlohmann::json data) {
         }
     }
 }
+
+Group Config::get_group(const std::string &name) {
+    for (auto g: groups) {
+        if (g.name == name) {
+            return g;
+        }
+    }
+}

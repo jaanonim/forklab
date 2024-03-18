@@ -16,6 +16,7 @@ struct ProjectData {
     std::string name;
     std::string id;
     std::string clone_url;
+    std::string path;
 };
 
 

@@ -10,10 +10,12 @@
 #include <iostream>
 #include "inquirer.h"
 #include "Gitlab.h"
+#include <filesystem>
 #include "spinners.hpp"
 
-using namespace fmt;
 using namespace spinners;
+using namespace fmt;
+namespace fs = std::filesystem;
 
 int Cli::run() {
     try {
@@ -107,20 +109,12 @@ void Cli::run_interactive() {
     inquirer->add_question({"name", "Select group", v});
     inquirer->ask();
 
-    auto group = std::find_if(config->get_groups().begin(), config->get_groups().end(),
-                              [&](const Group &ele) { return ele.name == inquirer->answer("name"); }).base();
+    Group group = config->get_group(inquirer->answer("name"));
     Gitlab gitlab(config->getAuthToken().value_or(""));
 
-    Spinner *spinner = new Spinner();
-    spinner->setText("Loading ...");
-    spinner->setInterval(100);
-    spinner->setSymbols("dots");
-
-    spinner->start();
-    auto in_data = gitlab.getGroupProjects(group->in_group);
-    spinner->stop();
-    delete spinner;
-    spinner = nullptr;
+    start_spinner("Loading ...");
+    auto in_data = gitlab.getGroupProjects(group.in_group);
+    stop_spinner(true);
 
     delete inquirer;
     inquirer = new alx::Inquirer("");
@@ -134,14 +128,10 @@ void Cli::run_interactive() {
     const ProjectData *p_data = std::find_if(in_data.begin(), in_data.end(),
                                              [&](auto ele) { return ele.name == name; }).base();
 
-    spinner = new Spinner();
-    spinner->setText("Forking ...");
-    spinner->setInterval(100);
-    spinner->setSymbols("dots");
 
-    spinner->start();
+    start_spinner("Forking ...");
     try {
-        gitlab.createFork(p_data->id, group->out_group);
+//        gitlab.createFork(p_data->id, group->out_group);
     }
     catch (HTTPError &e) {
         if (e.response_code == 409) {
@@ -150,17 +140,54 @@ void Cli::run_interactive() {
             throw;
         }
     }
-    auto out_data = gitlab.getGroupProjects(group->out_group);
-    spinner->stop();
-    delete spinner;
-    spinner = nullptr;
+    auto out_data = gitlab.getGroupProjects(group.out_group);
+    stop_spinner();
 
     p_data = std::find_if(out_data.begin(), out_data.end(),
                           [&](auto ele) { return ele.name == name; }).base();
 
     if (p_data == nullptr) throw GenericError("Failed to fork repo.");
-    print("{}", p_data->clone_url);
 
+
+    if (!fs::is_directory(group.folder_path)) {
+        throw GenericError(format("Directory `{}` don't exists.", group.folder_path));
+    }
+    if (fs::is_directory(group.folder_path + p_data->path)) {
+        throw GenericError(format("Project directory `{}` already exists.", group.folder_path + p_data->path));
+    }
+
+    start_spinner("Cloning ...");
+    int res = system(format("cd {} && git clone {} --quiet", group.folder_path, p_data->clone_url).c_str());
+    stop_spinner();
+
+    if (res != 0) throw GenericError(format("Cloning failed with code {}", res));
+
+    if (group.command.has_value()) {
+        start_spinner("Running command ...");
+        res = system(format("cd {} && {}", group.folder_path + p_data->path, group.command.value()).c_str());
+        stop_spinner();
+
+        if (res != 0) throw GenericError(format("Command failed with code {}", res));
+    }
+    print(fg(fmt::color::green) | fmt::emphasis::bold, "DONE!");
+}
+
+void Cli::start_spinner(std::string text) {
+    spinner = new Spinner();
+    ((Spinner *) spinner)->setText(std::move(text));
+    ((Spinner *) spinner)->setInterval(100);
+    ((Spinner *) spinner)->setSymbols("dots");
+    ((Spinner *) spinner)->start();
+}
+
+void Cli::stop_spinner(bool silent) {
+    ((Spinner *) spinner)->stop();
+    if (!silent) {
+        print(fg(fmt::color::green), "✓");
+        print("\n");
+    }
+    delete ((Spinner *) spinner);
+    spinner = nullptr;
 }
 
 void Cli::print_help() {
@@ -215,7 +242,7 @@ void Cli::run_create_interactive() {
     inquirer.add_question({"name", "How to call this group?", ".+"});
     inquirer.add_question({"in_group", "Group ID from witch group fork projects (eg. 1234567)?", ".+"});
     inquirer.add_question({"out_group", "Group ID to witch group fork to (eq. 1234567)?", ".+"});
-    inquirer.add_question({"path", "Where to clone those project (absolute path)?", "^(/[^/ ]*)+/?$"});
+    inquirer.add_question({"folder_path", "Where to clone those project (absolute folder_path)?", "^(/[^/ ]*)+/?$"});
     inquirer.add_question({"command", "Execute any command after cloning?:"});
     inquirer.ask();
     auto command = inquirer.answer("command");
@@ -224,7 +251,7 @@ void Cli::run_create_interactive() {
             inquirer.answer("name"),
             inquirer.answer("in_group"),
             inquirer.answer("out_group"),
-            inquirer.answer("path"),
+            inquirer.answer("folder_path"),
             command.empty() ? std::nullopt : std::make_optional(command)
     ));
 }
@@ -243,7 +270,7 @@ void Cli::run_delete() {
 void Cli::run_list() {
     print(fmt::emphasis::bold, "{:<16} {:<20} {:<20} {:<30} {:<30}\n", "Name", "In", "Out", "Path", "Command");
     for (const auto &group: config->get_groups()) {
-        print("{:<16} {:<20} {:<20} {:<30} {:<30}\n", group.name, group.in_group, group.out_group, group.path,
+        print("{:<16} {:<20} {:<20} {:<30} {:<30}\n", group.name, group.in_group, group.out_group, group.folder_path,
               group.command.value_or(""));
     }
 }
@@ -263,4 +290,9 @@ void Cli::run_help() {
 Cli::~Cli() {
     delete config;
     config = nullptr;
+
+    if (spinner != nullptr) {
+        delete spinner;
+        spinner = nullptr;
+    }
 }

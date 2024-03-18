@@ -20,6 +20,7 @@ public:
 
 private:
     std::vector<std::string> args;
+    void *spinner = nullptr;
 
     void _run();
 
@@ -46,6 +47,9 @@ private:
 
     void run_help();
 
+    void start_spinner(std::string);
+
+    void stop_spinner(bool = false);
 
     void print_help();
 
