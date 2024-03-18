@@ -31,20 +31,24 @@ int Cli::run() {
         }
         return e.code;
     } catch (HTTPError &e) {
+        print("\n");
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, "{} {}", e.response_code, e.what());
         print(stderr, fg(fmt::color::red), "\n" + e.message);
         return e.code;
     }
     catch (MessageException &e) {
+        print("\n");
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
         print(stderr, fg(fmt::color::red), "\n" + e.message);
         return e.code;
     }
     catch (CodeException &e) {
+        print("\n");
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
         return e.code;
     }
     catch (std::exception &e) {
+        print("\n");
         print(stderr, fg(fmt::color::red) | fmt::emphasis::bold, e.what());
         return 255;
     }
@@ -120,6 +124,7 @@ void Cli::run_interactive() {
     inquirer = new alx::Inquirer("");
     v.clear();
     for (const auto &ele: in_data) v.push_back(ele.name);
+    if (v.empty()) throw GenericError("No projects in target group.");
     inquirer->add_question({"name", "Select project to fork", v});
     inquirer->ask();
     std::string name = inquirer->answer("name");
@@ -150,10 +155,10 @@ void Cli::run_interactive() {
 
 
     if (!fs::is_directory(group.folder_path)) {
-        throw GenericError(format("Directory `{}` don't exists.", group.folder_path));
+        throw DirectoryError(format("Directory `{}` don't exists.", group.folder_path));
     }
     if (fs::is_directory(group.folder_path + p_data->path)) {
-        throw GenericError(format("Project directory `{}` already exists.", group.folder_path + p_data->path));
+        throw DirectoryError(format("Project directory `{}` already exists.", group.folder_path + p_data->path));
     }
 
     start_spinner("Cloning ...");
@@ -245,6 +250,7 @@ void Cli::run_create_interactive() {
     v.reserve(groups.size());
     for (const auto &group: groups) v.push_back(group.name);
     stop_spinner(true);
+    if (v.empty()) throw GenericError("No groups found.");
 
     auto inquirer = alx::Inquirer("Create group.");
     inquirer.add_question({"name", "How to call this group?", ".+"});
@@ -285,6 +291,8 @@ void Cli::run_delete() {
 }
 
 void Cli::run_delete_interactive() {
+    if (config->get_groups().empty()) throw GenericError("Nothing to delete.");
+
     auto *inquirer = new alx::Inquirer("Delete group");
     std::vector<std::string> v;
     for (const auto &group: config->get_groups()) v.push_back(group.name);

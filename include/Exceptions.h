@@ -106,6 +106,18 @@ public:
     const int code = 152;
 };
 
+
+class DirectoryError : public MessageException {
+public:
+    explicit DirectoryError(const std::string &m) : MessageException(m) {}
+
+    char *what() override {
+        return "Directory error.";
+    }
+
+    const int code = 102;
+};
+
 class GenericError : public MessageException {
 public:
     explicit GenericError(const std::string &m) : MessageException(m) {}
