@@ -4,7 +4,8 @@ CLI tool for automated forking and cloning repos on gitlab.
 
 ### Installation
 
-You can download latest executable from github or build from sources.
+You can download latest executable from [github releases](https://github.com/jaanonim/forklab/releases) or build from
+sources.
 
 ### Build
 

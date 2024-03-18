@@ -131,7 +131,7 @@ void Cli::run_interactive() {
 
     start_spinner("Forking ...");
     try {
-//        gitlab.createFork(p_data->id, group->out_group);
+        gitlab.createFork(p_data->id, group.out_group);
     }
     catch (HTTPError &e) {
         if (e.response_code == 409) {
