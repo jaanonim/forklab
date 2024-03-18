@@ -56,6 +56,8 @@ private:
     Config *config;
 
     void run_create_interactive();
+
+    void run_delete_interactive();
 };
 
 

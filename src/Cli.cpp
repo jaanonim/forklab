@@ -257,13 +257,32 @@ void Cli::run_create_interactive() {
 }
 
 void Cli::run_delete() {
+    if (args.size() == 2) {
+        run_delete_interactive();
+        return;
+    }
     if (args.size() != 3) {
         throw InvalidArgs("Expected to get only name of group after `delete`.");
     }
+
     if (config->del_group(args[2])) {
         print("Group named {} deleted.", args[2]);
     } else {
         throw GroupError("Cannot delete group named: " + args[2] + "\nProbably group doesn't exist.");
+    }
+}
+
+void Cli::run_delete_interactive() {
+    auto *inquirer = new alx::Inquirer("Delete group");
+    std::vector<std::string> v;
+    for (const auto &group: config->get_groups()) v.push_back(group.name);
+    inquirer->add_question({"name", "Select group to delete", v});
+    inquirer->ask();
+    std::string s = inquirer->answer("name");
+    if (config->del_group(s)) {
+        print("Group named {} deleted.", s);
+    } else {
+        throw GroupError("Cannot delete group named: " + s + "\nProbably group doesn't exist.");
     }
 }
 
@@ -292,7 +311,7 @@ Cli::~Cli() {
     config = nullptr;
 
     if (spinner != nullptr) {
-        delete spinner;
+        delete ((Spinner *) spinner);
         spinner = nullptr;
     }
 }
