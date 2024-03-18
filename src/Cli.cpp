@@ -238,19 +238,31 @@ void Cli::run_create() {
 }
 
 void Cli::run_create_interactive() {
+    start_spinner("Loading ...");
+    Gitlab gitlab(config->getAuthToken().value_or(""));
+    auto groups = gitlab.getGroups();
+    std::vector<std::string> v;
+    v.reserve(groups.size());
+    for (const auto &group: groups) v.push_back(group.name);
+    stop_spinner(true);
+
     auto inquirer = alx::Inquirer("Create group.");
     inquirer.add_question({"name", "How to call this group?", ".+"});
-    inquirer.add_question({"in_group", "Group ID from witch group fork projects (eg. 1234567)?", ".+"});
-    inquirer.add_question({"out_group", "Group ID to witch group fork to (eq. 1234567)?", ".+"});
+    inquirer.add_question({"in_group", "Group ID from witch group fork projects (eg. 1234567)?", "\\d+"});
+    inquirer.add_question({"out_group", "To witch group fork to?", v});
     inquirer.add_question({"folder_path", "Where to clone those project (absolute folder_path)?", "^(/[^/ ]*)+/?$"});
     inquirer.add_question({"command", "Execute any command after cloning?:"});
     inquirer.ask();
     auto command = inquirer.answer("command");
 
+    std::string name = inquirer.answer("out_group");
+    auto id = std::find_if(groups.begin(), groups.end(),
+                           [&](auto ele) { return ele.name == name; })->id;
+
     config->add_group(Group(
             inquirer.answer("name"),
             inquirer.answer("in_group"),
-            inquirer.answer("out_group"),
+            id,
             inquirer.answer("folder_path"),
             command.empty() ? std::nullopt : std::make_optional(command)
     ));

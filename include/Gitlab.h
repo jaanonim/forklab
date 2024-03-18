@@ -19,6 +19,11 @@ struct ProjectData {
     std::string path;
 };
 
+struct GroupData {
+    std::string name;
+    std::string id;
+};
+
 
 class Gitlab {
 public:
@@ -27,6 +32,8 @@ public:
     ~Gitlab();
 
     std::vector<ProjectData> getGroupProjects(const std::string &);
+
+    std::vector<GroupData> getGroups();
 
     void createFork(const std::string &, const std::string &);
 

@@ -33,6 +33,17 @@ std::vector<ProjectData> Gitlab::getGroupProjects(const std::string &group_id) {
     return res;
 }
 
+
+std::vector<GroupData> Gitlab::getGroups() {
+    json data = get("/api/v4/groups");
+    std::vector<GroupData> res;
+    for (auto ele: data) {
+        res.push_back({ele["full_name"], to_string(ele["id"])});
+    }
+    return res;
+}
+
+
 nlohmann::json Gitlab::get(const std::string &url) {
     httplib::Headers headers = {
             {"Authorization", "Bearer " + auth_token}
