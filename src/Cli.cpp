@@ -88,7 +88,7 @@ Cli::ArgAction Cli::match_first_arg() {
         return Cli::ArgAction::REMOVE;
     } else if (args[1] == "l" || args[1] == "list") {
         return Cli::ArgAction::LIST;
-    } else if (args[1] == "h" || args[1] == "help") {
+    } else if (args[1] == "h" || args[1] == "help" || args[1] == "?") {
         return Cli::ArgAction::HELP;
     } else if (args[1] == "auth") {
         return Cli::ArgAction::AUTH;
@@ -195,27 +195,56 @@ void Cli::stop_spinner(bool silent) {
     spinner = nullptr;
 }
 
-void Cli::print_help() {
-    print(
-            fg(fmt::color::cyan) | fmt::emphasis::bold,
-            "\n"
-            "   __           _    _       _     \n"
-            "  / _|         | |  | |     | |    \n"
-            " | |_ ___  _ __| | _| | __ _| |__  \n"
-            " |  _/ _ \\| '__| |/ / |/ _` | '_ \\ \n"
-            " | || (_) | |  |   <| | (_| | |_) |\n"
-            " |_| \\___/|_|  |_|\\_\\_|\\__,_|_.__/ \n"
-            "                                   \n"
-    );
-    print("Tool for automated forking and cloning repos on gitlab.\n\n");
+void Cli::print_help(bool short_version) {
+    if (!short_version) {
+        print(
+                fg(fmt::color::cyan) | fmt::emphasis::bold,
+                "\n"
+                "   __           _    _       _     \n"
+                "  / _|         | |  | |     | |    \n"
+                " | |_ ___  _ __| | _| | __ _| |__  \n"
+                " |  _/ _ \\| '__| |/ / |/ _` | '_ \\ \n"
+                " | || (_) | |  |   <| | (_| | |_) |\n"
+                " |_| \\___/|_|  |_|\\_\\_|\\__,_|_.__/ \n"
+                "                                   \n"
+        );
+        print("Tool for automated forking and cloning repos on gitlab.\n\n");
+    } else {
+        print("\n");
+    }
     print(fmt::emphasis::bold, "Usage: ");
     print("forklab [COMMAND]\n\n");
-    print(fmt::emphasis::bold, "Options:\n");
-    print("\t\tauth\t\tsets auth token for gitlab\n");
-    print("\tc,\tcreate\t\tcreate new group interactively\n");
-    print("\td,\tdelete\t\tdelete group of given index\n");
-    print("\th,\thelp\t\tshows this help\n");
-    print("\tl,\tlist\t\tlists groups\n");
+    print("Run without arguments to fork and clone projects in interactive mode.\n");
+    print(fmt::emphasis::bold, "Commands:\n");
+    print("\t\tauth\t\tSets auth token for gitlab.\n");
+    print("\tc,\tcreate\t\tCreate new group interactively.\n");
+    print("\td,\tdelete\t\tDelete group of given index.\n");
+    if (short_version) {
+        print("\th,\thelp\t\tShows full help.\n");
+    } else {
+        print("\th,\thelp\t\tShows this help.\n");
+    }
+    print("\tl,\tlist\t\tLists groups.\n");
+    print("\n");
+
+    if (short_version) return;
+    print(fmt::emphasis::bold, "Detailed usage:\n");
+    print(fmt::emphasis::italic, "   forklab\n");
+    print("\tRuns in interactive mode enables to fork and clone projects for configured groups.\n\n");
+    print(fmt::emphasis::italic, "   forklab auth TOKEN\n");
+    print("\tPass gitlab personal auth token as TOKEN argument.\n\n");
+    print(fmt::emphasis::italic, "   forklab create\n");
+    print("\tRun's create in interactive mode.\n\n");
+    print(fmt::emphasis::italic, "   forklab create NAME ID_IN ID_OUT PATH [COMMAND]\n");
+    print("\tCrate group with given name that will get projects from gitlab group of ID_IN and fork it\n\tto group of ID_OUT and then clone it to PATH (need to be absolute path to existing folder).\n\tOptionally can COMMAND can be passed that will be run in director of newly forked project.\n\n");
+    print(fmt::emphasis::italic, "   forklab delete\n");
+    print("\tRun's delete in interactive mode.\n\n");
+    print(fmt::emphasis::italic, "   forklab delete NAME\n");
+    print("\tDeletes group with given NAME.\n\n");
+    print(fmt::emphasis::italic, "   forklab help\n");
+    print("\tPrints this beautiful help.\n\n");
+    print(fmt::emphasis::italic, "   forklab list\n");
+    print("\tLists all created groups.\n\n");
 }
 
 void Cli::run_create() {
@@ -238,7 +267,7 @@ void Cli::run_create() {
             }
             break;
         default:
-            throw InvalidArgs("Command create expects 0, 4 or 7 arguments.");
+            throw InvalidArgs("Command create expects 0, 4 or 5 arguments.");
     }
 }
 
@@ -323,7 +352,7 @@ void Cli::run_auth() {
 }
 
 void Cli::run_help() {
-    print_help();
+    print_help(false);
 }
 
 Cli::~Cli() {

@@ -51,7 +51,7 @@ private:
 
     void stop_spinner(bool = false);
 
-    void print_help();
+    void print_help(bool = true);
 
     Config *config;
 
