@@ -32,8 +32,7 @@
 namespace alx {
     class Inquirer;
 
-    enum class Type
-    {
+    enum class Type {
         text = 0,
         integer = 1,
         decimal = 2,
@@ -43,11 +42,9 @@ namespace alx {
         regex = 6
     };
 
-    class Question
-    {
+    class Question {
     public:
-        Question(const Question& q)
-        {
+        Question(const Question &q) {
             m_key = q.m_key;
             m_question = q.m_question;
             m_answer = q.m_answer;
@@ -67,8 +64,7 @@ namespace alx {
                 : m_key(std::move(key)),
                   m_question(std::move(question)),
                   m_type(Type::options),
-                  m_options(std::move(options))
-        {
+                  m_options(std::move(options)) {
             if (m_options.empty())
                 throw std::runtime_error("Must have one or more options");
         }
@@ -91,8 +87,7 @@ namespace alx {
         std::string m_regex;
     };
 
-    class Inquirer
-    {
+    class Inquirer {
         std::vector<std::pair<std::string, Question>> m_questions;
         std::string m_title;
 
@@ -100,20 +95,19 @@ namespace alx {
         explicit Inquirer(std::string title)
                 : m_title(std::move(title)) {}
 
-        void add_question(const Question& question) { m_questions.emplace_back(question.m_key, question); }
+        void add_question(const Question &question) { m_questions.emplace_back(question.m_key, question); }
 
-        void ask()
-        {
+        void ask() {
             if (!m_title.empty())
                 std::cout << "\033[34m>\033[0m " << m_title << '\n';
-            for (auto& question : m_questions) {
-                auto& q = question.second;
+            for (auto &question: m_questions) {
+                auto &q = question.second;
 
-                auto printQuestion = [&](const std::string& append = "") {
+                auto printQuestion = [&](const std::string &append = "") {
                     std::cout << "\033[1m\033[34m?\033[0m \033[1m" << q.m_question << "\033[0m " << append;
                 };
 
-                auto takeInput = [](std::string& destination) {
+                auto takeInput = [](std::string &destination) {
                     std::cout << "\033[34m";
                     std::getline(std::cin, destination);
                     std::cout << "\033[0m";
@@ -172,8 +166,7 @@ namespace alx {
                                 position = true;
                                 erase_lines(2);
                                 printQuestion(yes);
-                            }
-                            else if (key == Inquirer::keyDx) {
+                            } else if (key == Inquirer::keyDx) {
                                 position = false;
                                 erase_lines(2);
                                 printQuestion(no);
@@ -206,8 +199,7 @@ namespace alx {
                                 erase_lines(q.m_options.size() + 2);
                                 printQuestion();
                                 printOptions();
-                            }
-                            else if (key == Inquirer::keyUp) {
+                            } else if (key == Inquirer::keyUp) {
                                 selectedIndex = wrap_int(selectedIndex - 1, 0, q.m_options.size() - 1);
                                 erase_lines(q.m_options.size() + 2);
                                 printQuestion();
@@ -218,6 +210,9 @@ namespace alx {
                                 erase_lines(q.m_options.size() + 2);
                                 printQuestion("\033[34m" + q.m_options.at(selectedIndex) + "\033[0m\n");
                                 break;
+                            }
+                            if (key == 3) {
+                                exit(130);
                             }
                         }
                         break;
@@ -238,22 +233,19 @@ namespace alx {
             }
         }
 
-        void print_questions() const
-        {
-            for (const auto& q : m_questions) {
+        void print_questions() const {
+            for (const auto &q: m_questions) {
                 std::cout << q.second.m_question << " " << static_cast<int>(q.second.m_type) << '\n';
             }
         }
 
-        void print_answers() const
-        {
-            for (const auto& q : m_questions)
+        void print_answers() const {
+            for (const auto &q: m_questions)
                 std::cout << q.second.m_question << ": " << q.second.m_answer << '\n';
         }
 
-        std::string answer(const std::string& key) const
-        {
-            for (const auto& question : m_questions)
+        std::string answer(const std::string &key) const {
+            for (const auto &question: m_questions)
                 if (question.first == key)
                     return question.second.m_answer;
             return "";
@@ -262,10 +254,10 @@ namespace alx {
     private:
 #ifdef _WIN32
         static int const keyDw = 80;
-		static int const keyUp = 72;
-		static int const keySx = 75;
-		static int const keyDx = 77;
-		static int const keyEnter = 13;
+        static int const keyUp = 72;
+        static int const keySx = 75;
+        static int const keyDx = 77;
+        static int const keyEnter = 13;
 #else
         static int const keyUp = 65;
         static int const keyDw = 66;
@@ -274,8 +266,7 @@ namespace alx {
         static int const keyEnter = 13;
 #endif
 
-        static void erase_lines(const unsigned count = 1)
-        {
+        static void erase_lines(const unsigned count = 1) {
             if (count == 0)
                 return;
 
@@ -287,24 +278,21 @@ namespace alx {
             std::cout << '\r';
         }
 
-        static bool is_integer(const std::string& string)
-        {
+        static bool is_integer(const std::string &string) {
             if (string.empty() || ((!isdigit(string[0])) && (string[0] != '-') && (string[0] != '+'))) return false;
-            char* p;
+            char *p;
             strtol(string.c_str(), &p, 10);
             return (*p == 0);
         }
 
-        static bool is_decimal(const std::string& string)
-        {
+        static bool is_decimal(const std::string &string) {
             if (string.empty() || ((!isdigit(string[0])) && (string[0] != '-') && (string[0] != '+'))) return false;
-            char* p;
+            char *p;
             strtod(string.c_str(), &p);
             return (*p == 0);
         }
 
-        static unsigned wrap_int(unsigned int k, const unsigned lowerBound, const unsigned upperBound)
-        {
+        static unsigned wrap_int(unsigned int k, const unsigned lowerBound, const unsigned upperBound) {
             const unsigned range_size = upperBound - lowerBound + 1;
 
             if (k < lowerBound)
@@ -313,8 +301,7 @@ namespace alx {
             return lowerBound + (k - lowerBound) % range_size;
         }
 
-        static int getch()
-        {
+        static int getch() {
             int c; // This function should return the keystroke without allowing it to echo on screen
 
 #ifdef _WIN32

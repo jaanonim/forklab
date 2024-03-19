@@ -114,7 +114,7 @@ void Cli::run_interactive() {
     inquirer->ask();
 
     Group group = config->get_group(inquirer->answer("name"));
-    Gitlab gitlab(config->getAuthToken().value_or(""));
+    Gitlab gitlab(config->getAuthToken().value_or("a"));
 
     start_spinner("Loading ...");
     auto in_data = gitlab.getGroupProjects(group.in_group);
@@ -273,7 +273,7 @@ void Cli::run_create() {
 
 void Cli::run_create_interactive() {
     start_spinner("Loading ...");
-    Gitlab gitlab(config->getAuthToken().value_or(""));
+    Gitlab gitlab(config->getAuthToken().value_or("a"));
     auto groups = gitlab.getGroups();
     std::vector<std::string> v;
     v.reserve(groups.size());
