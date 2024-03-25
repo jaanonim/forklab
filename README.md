@@ -91,3 +91,8 @@ You can change location of config file by setting env variable `FORKLAB_CONFIG_P
 - [spinners](https://github.com/jkuri/spinners)
 - [{fmt}](https://github.com/fmtlib/fmt)
 - [json](https://github.com/nlohmann/json)
+
+### Contributing
+
+Feel free to open issues and pull requests.
+If you want to port it to windows, I will be happy to point potential things that need to be changed and accept PR.
