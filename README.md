@@ -72,13 +72,19 @@ Detailed usage:
         Lists all created groups.
 ```
 
+To get your personal auth token
+follow [this link](https://gitlab.com/-/user_settings/personal_access_tokens?name=Forklab&scopes=api) and
+press `Add new token`. (then run `forklab auth YOUR_TOKEN`)
+
+To find group id follow [this tutorial](https://docs.gitlab.com/ee/user/group/#get-the-group-id).
+
 ### Config
 
 You can change location of config file by setting env variable `FORKLAB_CONFIG_PATH`. By default, it's `~/.config/`
 
 **Warning config file include your gitlab auth token so don't share it!**
 
-### Used libraries:
+### Used libraries
 
 - [cpp-inquirer](https://github.com/aelliixx/cpp-inquirer)
 - [cpp-httplib](https://github.com/yhirose/cpp-httplib)
