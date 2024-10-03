@@ -20,18 +20,26 @@ cmake --build . --config Release
 
 Your executable is `build/forklab`
 
+#### Nix
+
+If you are using nix you can use flake:
+
+```bash
+nix run github:jaanonim/forklab
+```
+
 ### Usage
 
 Run `forklab h` for help.
 
 ```
-   __           _    _       _     
-  / _|         | |  | |     | |    
- | |_ ___  _ __| | _| | __ _| |__  
- |  _/ _ \| '__| |/ / |/ _` | '_ \ 
+   __           _    _       _
+  / _|         | |  | |     | |
+ | |_ ___  _ __| | _| | __ _| |__
+ |  _/ _ \| '__| |/ / |/ _` | '_ \
  | || (_) | |  |   <| | (_| | |_) |
- |_| \___/|_|  |_|\_\_|\__,_|_.__/ 
-                                   
+ |_| \___/|_|  |_|\_\_|\__,_|_.__/
+
 Tool for automated forking and cloning repos on gitlab.
 
 Usage: forklab [COMMAND]
